@@ -15,9 +15,16 @@ namespace TelegramReader
         public MainForm()
         {
             InitializeComponent();
-            var initializer = new ProgramInitializer();
-            initializer.SetUpLogger();
+            initializer = new ProgramInitializer();
             initializer.StartClient();
+        }
+
+        internal ProgramInitializer initializer { get; }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            var pollingClient = new TelegramReaderClient(initializer.Client);
+            pollingClient.GetChannels();
         }
     }
 }

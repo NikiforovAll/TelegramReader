@@ -12,16 +12,21 @@ namespace TelegramReader
     class ProgramInitializer
     {
 
+        public TelegramClient Client { get; private set; }
         public ProgramInitializer()
         {
+            SetUpLogger();
         }
         public async void StartClient()
         {
             var creds = GetTelegramCredentials();
             var client = new TelegramClient(creds.appId, creds.hash);
             await client.ConnectAsync();
-
-            await AuthUser(client);
+            if (client.IsUserAuthorized())
+            {
+                await AuthUser(client);
+            }
+            Client = client;
         }
 
         private async Task AuthUser(TelegramClient client)
@@ -29,7 +34,7 @@ namespace TelegramReader
             var userModel = GetUserConfig();
             var hash = await client.SendCodeRequestAsync(userModel.PhoneNumber);
             var code = DefaultPrompt.ShowDialog("Verification code", "Telegram verification");
-            var user = await client.MakeAuthAsync("<user_number>", hash, code);
+            var user = await client.MakeAuthAsync(userModel.PhoneNumber, hash, code);
         }
 
         public void SetUpLogger()
@@ -49,13 +54,11 @@ namespace TelegramReader
             return (0, "");
         }
 
-
         private static  UserModel GetUserConfig()
         {
             var config = (UserSection)ConfigurationManager.GetSection("user");
             return config?.CreateUserConfig();
         }
-            
     }
 
     class InitializerUtil

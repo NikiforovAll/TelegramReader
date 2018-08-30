@@ -16,6 +16,13 @@ namespace TelegramReader
             set { this[nameof(PhoneNumber)] = value; }
         }
 
+        [ConfigurationProperty(nameof(ChannelName))]
+        public UserElement ChannelName
+        {
+            get { return this[nameof(ChannelName)] as UserElement; }
+            set { this[nameof(ChannelName)] = value; }
+        }
+
         public UserModel CreateUserConfig()
         {
             return new UserModel()
