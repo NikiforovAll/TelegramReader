@@ -21,7 +21,7 @@ namespace TelegramReader
             this.client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
-        public async Task<(int id, string message, bool isNew)> GetChannel(string channelName)
+        public async Task<(int id, string message, bool isNew)> GetNewMessage(string channelName)
         {
             var dialogs = (TLDialogsSlice)await client.GetUserDialogsAsync();
             var channel = dialogs.Chats
@@ -42,10 +42,15 @@ namespace TelegramReader
                 .OrderByDescending(m => m.Date)
                 .FirstOrDefault();
             var result = (0, "", false);
-            if(hist != null && !Messages.ContainsKey(hist.Id))
+            var isNewMessage = false;
+            if(hist != null)
             {
-                result = (hist.Id, hist.Message, true);
-                Messages.Add(hist.Id, hist.Message);
+                if (!Messages.ContainsKey(hist.Id))
+                {
+                    Messages.Add(hist.Id, hist.Message);
+                    isNewMessage = true;
+                }
+                result = (hist.Id, hist.Message, isNewMessage);
             }
             Log.Information($"Current message: {result}");
             return result;

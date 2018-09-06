@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
+using WMPLib;
 
 namespace TelegramReader
 {
@@ -11,17 +12,29 @@ namespace TelegramReader
     {
 
 
+
+        public int TIMER_DELAY { get; private set; } = 1800 * 000;
+
         internal ProgramInitializer Initializer { get; }
         internal TelegramReaderClient TGClient { get; private set; }
         internal System.Timers.Timer MainTimer { get; private set; }
-        public int TIMER_DELAY { get; private set; } = 1800 * 000;
+        internal WindowsMediaPlayer AudioPlayer { get; private set; }
 
         public MainForm()
         {
             InitializeComponent();
             Initializer = new ProgramInitializer();
             InitializeTimer();
+            InitializeAudioPlayer();
             Load += MainForm_Load;
+
+        }
+
+        private void InitializeAudioPlayer()
+        {
+            AudioPlayer = new WMPLib.WindowsMediaPlayer();
+            AudioPlayer.settings.setMode("loop", true);
+
 
         }
 
@@ -42,7 +55,6 @@ namespace TelegramReader
             }
 
             MainTimer = new System.Timers.Timer(timerDelay);
-
             MainTimer.Elapsed += OnTimedEvent;
         }
 
@@ -50,9 +62,12 @@ namespace TelegramReader
         {
             Log.Information("Tick!");
 
-            var rowMessage = await TGClient.GetChannel(Initializer.UserModel.ChannelName);
+            var rowMessage = await TGClient.GetNewMessage(Initializer.UserModel.ChannelName);
             if (rowMessage.isNew)
             {
+                AudioPlayer.URL = ConfigurationManager.AppSettings["alarm-track"];
+                AudioPlayer.controls.play();
+
                 listView1.Invoke((MethodInvoker)delegate
                 {
                     listView1.Items.Add(
@@ -67,13 +82,34 @@ namespace TelegramReader
         {
             MainTimer.Enabled = true;
             Log.Information("Turned on Timer");
+            ToggleTimerActivationButtons();
         }
 
         private async void button2_Click(object sender, EventArgs e)
         {
             MainTimer.Enabled = false;
             Log.Information("Turned off Timer");
+            ToggleTimerActivationButtons();
 
+        }
+
+        private void ToggleTimerActivationButtons()
+        {
+            if (button1.Enabled)
+            {
+                button1.Enabled = false;
+                button2.Enabled = true;
+            }
+            else
+            {
+                button1.Enabled = true;
+                button2.Enabled = false;
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            AudioPlayer.controls.stop();
         }
     }
 }
