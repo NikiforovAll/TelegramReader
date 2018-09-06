@@ -34,8 +34,6 @@ namespace TelegramReader
         {
             AudioPlayer = new WMPLib.WindowsMediaPlayer();
             AudioPlayer.settings.setMode("loop", true);
-
-
         }
 
         private async void MainForm_Load(object sender, EventArgs e)
@@ -62,11 +60,14 @@ namespace TelegramReader
         {
             Log.Information("Tick!");
 
-            var rowMessage = await TGClient.GetNewMessage(Initializer.UserModel.ChannelName);
+            var rowMessage = await TGClient.GetNewMessage(Initializer.UserModel.ChannelName.Trim());
             if (rowMessage.isNew)
             {
-                AudioPlayer.URL = ConfigurationManager.AppSettings["alarm-track"];
-                AudioPlayer.controls.play();
+                if (sender != null)
+                {
+                    AudioPlayer.URL = ConfigurationManager.AppSettings["alarm-track"];
+                    AudioPlayer.controls.play();
+                }
 
                 listView1.Invoke((MethodInvoker)delegate
                 {
@@ -80,8 +81,9 @@ namespace TelegramReader
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            MainTimer.Enabled = true;
+            MainTimer.Start();
             Log.Information("Turned on Timer");
+            OnTimedEvent(null, null);
             ToggleTimerActivationButtons();
         }
 
