@@ -27,7 +27,8 @@ namespace TelegramReader
         {
             return new UserModel()
             {
-                PhoneNumber = this.PhoneNumber.InnerText
+                PhoneNumber = this.PhoneNumber.InnerText,
+                ChannelName = this.ChannelName.InnerText
             };
         }
     }
